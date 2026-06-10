@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>軟專期末總複習</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans pb-24">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- 期末考專屬題庫 (精確萃取自 軟專期末.docx, Week-9 PDF, Week-11-14 PDF) ---
+        // 總計 50 題 (8填 + 2計 + 40選)
+        const quizData = [
+            // ========== 填充題 (Fill-in-the-blank) from Docx ==========
+            { id: 'F1', type: 'fill', q: "Frameworks such as Scrum and Kanban provide structure, but Agile practices emphasize adapting workflows based on _______ rather than strictly following fixed plans.", blanks: [{ id: "b1", label: "BLANK", valid: ["feedback", "continuous feedback", "changing conditions"] }] },
+            { id: 'F2', type: 'fill', q: "The Agile focus on 'working solutions' over other factors implies that teams should prioritize delivering _______ instead of excessive documentation.", blanks: [{ id: "b1", label: "BLANK", valid: ["functional", "working products", "working software"] }] },
+            { id: 'F3', type: 'fill', q: "Scrum and XP typically focus on team-level practices, whereas Lean Software Development extends its focus to the entire _______ aiming to optimize system-wide performance by reducing _______.", blanks: [{ id: "b1", label: "BLANK 1", valid: ["value stream", "entire value stream"] }, { id: "b2", label: "BLANK 2", valid: ["waste"] }] },
+            { id: 'F4', type: 'fill', q: "While Scrum ensures predictable delivery through fixed sprint cycles, Kanban controls workflow by limiting _______ which helps teams avoid over-commitment without relying on _______.", blanks: [{ id: "b1", label: "BLANK 1 (縮寫亦可)", valid: ["work-in-progress", "wip", "work in progress", "work-in-progress(wip)"] }, { id: "b2", label: "BLANK 2", valid: ["time-boxed iterations", "sprints", "time-boxed", "time boxed", "time-boxed iterations (or sprints)"] }] },
+            { id: 'F5', type: 'fill', q: "A team transitioning from Scrum to Kanban would shift from time-boxed iterations to a continuous flow model. This change primarily replaces the predictability of _______ with the flexibility of _______ which may improve responsiveness but reduce structured planning cycles.", blanks: [{ id: "b1", label: "BLANK 1", valid: ["fixed-length sprints", "sprints", "fixed length sprints"] }, { id: "b2", label: "BLANK 2", valid: ["continuous flow", "wip-managed workflow", "continuous flow (or wip-managed workflow)"] }] },
+            { id: 'F6', type: 'fill', q: "A burn-down chart tracks remaining work over time, while a burn-up chart tracks completed work. When scope changes frequently, a burn-up chart is more informative because it distinguishes between _______ and _______.", blanks: [{ id: "b1", label: "BLANK 1", valid: ["completed work", "work completed"] }, { id: "b2", label: "BLANK 2", valid: ["total scope", "scope changes", "scope", "total scope(or scope changes)"] }] },
+            { id: 'F7', type: 'fill', q: "As a team progresses from low competence/high commitment to high competence/high commitment, the leader should gradually shift from _______ to _______ reducing directive behavior while maintaining appropriate support.", blanks: [{ id: "b1", label: "BLANK 1", valid: ["directing"] }, { id: "b2", label: "BLANK 2", valid: ["delegating"] }] },
+            { id: 'F8', type: 'fill', q: "The value stream map emphasizes analyzing the entire process from request to delivery. Improving only a single stage (e.g., design) without addressing upstream and downstream delays may not significantly reduce _______, because optimization must consider the _______ process.", blanks: [{ id: "b1", label: "BLANK 1", valid: ["lead time", "total lead time"] }, { id: "b2", label: "BLANK 2", valid: ["end-to-end", "entire value stream", "end to end", "end-to-end (or entire value stream)"] }] },
+
+            // ========== 計算題 (Calculation) from Docx ==========
+            { id: 'C1', type: 'calc', q: "Scenario: A retail company is building a custom mobile shopping application.\n- Total Budget (BAC): $120,000\n- Planned Timeline: 12 weeks\nAt the end of Week 3, the team checks their EVM metrics:\n- Planned Value (PV): Planned to complete 25% of features. PV = $30,000.\n- Earned Value (EV): Completed 33% of features ahead of time. EV = $40,000.\n- Actual Cost (AC): Senior devs brought in unexpectedly. AC = $50,000.\n\nCalculate CPI and SPI. (小數點後兩位)", fields: [{ id: "cpi", label: "CPI", correct: 0.80 }, { id: "spi", label: "SPI", correct: 1.33 }] },
+            { id: 'C2', type: 'calc', q: "Based on the Value Stream Mapping analysis in the image below, please calculate the following four metrics:", image: "time.jpg", fields: [{ id: "vat", label: "Total Value-adding Time", correct: 1596.5 }, { id: "wt", label: "Total Wait Time", correct: 1280 }, { id: "lead", label: "Total Lead Time", correct: 2876.5 }, { id: "eff", label: "Process Efficiency (%)", correct: 55.5 }] },
+
+            // ========== 單/多選題 (Docx + Week 9 + Week 11-14) ==========
+
+            // -- Lifecycle / Cynefin (From Docx & Week 9) --
+            { id: 'M1', type: 'single', q: "Which operating environment in the Cynefin Framework is characterized by clear cause-and-effect relationships and the use of best practices?", opts: ["Complex", "Chaotic", "Clear", "Complicated"], ans: ["Clear"] },
+            { id: 'M2', type: 'single', q: "A company facing a brand-new market with unpredictable customer reactions should primarily use which approach?", opts: ["Apply standard operating procedures", "Rely on expert analysis only", "Conduct experiments and learn from outcomes", "Delay decisions until full information is available"], ans: ["Conduct experiments and learn from outcomes"] },
+            { id: 'M3', type: 'single', q: "Which domain is most appropriate for situations such as crisis management during a natural disaster?", opts: ["Clear", "Complicated", "Complex", "Chaotic"], ans: ["Chaotic"] },
+            { id: 'M4', type: 'single', q: "Which domain encourages small-scale experimentation to identify emerging patterns?", opts: ["Clear", "Complicated", "Complex", "Chaotic"], ans: ["Complex"] },
+            { id: 'M5', type: 'single', q: "Applying rigid best practices to a highly uncertain and innovative problem is most likely to result in:", opts: ["Increased efficiency", "Better employee morale", "Poor outcomes due to misdiagnosis of the context", "Faster decision-making"], ans: ["Poor outcomes due to misdiagnosis of the context"] },
+            { id: 'M6', type: 'single', q: "Which lifecycle MOST clearly assumes that each phase must be completed before the next begins, with minimal overlap?", opts: ["Incremental", "Agile", "Iterative", "Predictive"], ans: ["Predictive"] },
+            { id: 'M7', type: 'single', q: "Which project lifecycle explicitly combines frequent feedback and early delivery of usable outputs?", opts: ["Predictive", "Iterative", "Incremental", "Agile"], ans: ["Agile"] },
+            { id: 'M8', type: 'single', q: "Which lifecycle would be the LEAST appropriate when requirements are fixed and regulatory compliance demands detailed upfront planning?", opts: ["Predictive", "Iterative", "Incremental", "Agile"], ans: ["Agile"] },
+            { id: 'M9', type: 'single', q: "A project has a high rate of change and low resistance to Agile, but involves a large, inexperienced team. Which interpretation BEST aligns with the Agile Suitability Filter?", opts: ["Agile suitability is high because project uncertainty dominates", "Agile suitability is low because team factors outweigh project factors", "Agile is unsuitable regardless of organization support", "Agile suitability is mixed and requires careful team enablement"], ans: ["Agile suitability is mixed and requires careful team enablement"] },
+            { id: 'M10', type: 'single', q: "A radar chart shows strong scores for Culture and Teams, but low scores for Change Rate and Incremental Delivery. What is the MOST reasonable conclusion?", opts: ["Agile should still be fully adopted", "Predictive lifecycle is automatically superior", "Agile may offer limited benefits given project constraints", "Team capability alone compensates for project stability"], ans: ["Agile may offer limited benefits given project constraints"] },
+            { id: 'M11', type: 'single', q: "Two projects have equally skilled teams. Project A has frequent requirement changes; Project B has fixed scope and high regulatory verification. Which statement BEST compares Agile suitability?", opts: ["Both projects are equally suitable for Agile", "Project B is more suitable due to stability", "Project A is more suitable due to adaptability needs", "Suitability depends only on organizational culture"], ans: ["Project A is more suitable due to adaptability needs"] },
+            { id: 'M12', type: 'single', q: "Which factor MOST distinguishes Agile-suitable environments from predictive-suitable ones in the real world?", opts: ["Team size alone", "Presence of expert judgment", "Level of uncertainty and change", "Project budget size"], ans: ["Level of uncertainty and change"] },
+
+            { id: 'W9_1', type: 'multiple', q: "Which of the following is the factor affecting a project's complexity? (multiple answers are allowed)", opts: ["project scope", "business budgeting process", "business environment", "technology used in the project", "stakeholders competing interests", "team members skills"], ans: ["project scope", "business environment", "technology used in the project", "stakeholders competing interests", "team members skills"] },
+            { id: 'W9_2', type: 'single', q: "Cynefin Framework is used for", opts: ["analyzing project complexity only", "categorizing project complexity", "decide what to do with a project complexity", "collecting project complexity data"], ans: ["decide what to do with a project complexity"] },
+            { id: 'W9_3', type: 'single', q: "According to Cynefin Framework, if your project is identified as 'complex' then the series of steps to be taken is", opts: ["sense -> analyze -> respond", "sense -> categorize -> respond", "probe -> sense -> respond", "act -> sense -> respond"], ans: ["probe -> sense -> respond"] },
+            { id: 'W9_4', type: 'single', q: "According to Cynefin Framework, if your project is identified as 'chaotic' then the series of steps to be taken is", opts: ["sense -> analyze -> respond", "sense -> categorize -> respond", "probe -> sense -> respond", "act -> sense -> respond"], ans: ["act -> sense -> respond"] },
+            { id: 'W9_5', type: 'single', q: "According to Cynefin Framework, which of the following domain of complexity has 'unknown action or solution'?", opts: ["simple", "chaotic", "complex", "complicated"], ans: ["chaotic"] },
+            { id: 'W9_6', type: 'single', q: "What is the main characteristic of a 'incremental' project lifecycle?", opts: ["plan-driven, water fall, serial, linear, sequential", "feedback-driven, spiral steps", "small working pieces", "mixed of Iterative and Incremental"], ans: ["small working pieces"] },
+            { id: 'W9_7', type: 'single', q: "What is the main characteristic of an 'agile' project lifecycle?", opts: ["plan-driven, water fall, serial, linear, sequential", "feedback-driven, spiral steps", "small working pieces", "mixed of Iterative and Incremental"], ans: ["mixed of Iterative and Incremental"] },
+            { id: 'W9_8', type: 'single', q: "Which of the following has the least number of delivery, change, and stakeholder engagement?", opts: ["Iterative lifecycle", "Predictive lifecycle", "Agile lifecycle", "Incremental lifecycle"], ans: ["Predictive lifecycle"] },
+            { id: 'W9_9', type: 'single', q: "Steven, is a project manager who is dealing with a project with high certainty, fixed scope and producing a final product at the end. So, Steven is very likely handling a project with", opts: ["Iterative lifecycle", "Incremental lifecycle", "Agile lifecycle", "Predictive lifecycle"], ans: ["Predictive lifecycle"] },
+            { id: 'W9_10', type: 'single', q: "Timeboxing is a time management technique that allows you to allocate a fixed or varied 'duration / time frame' to an activity or a group of 'user stories'. Which of the following is FALSE?", opts: ["Varied duration is used in iteration-based agile lifecycle", "Fixed duration is used in iteration-based agile lifecycle", "Varied duration is used in flow-based agile lifecycle", "Fixed duration can range from 1-4 weeks"], ans: ["Varied duration is used in iteration-based agile lifecycle"] },
+            { id: 'W9_11', type: 'single', q: "A project has stable requirements, a well-understood solution, and must follow a strict sequence of phases from initiation to closing. Which project lifecycle is MOST appropriate?", opts: ["Agile lifecycle", "Incremental lifecycle", "Iterative lifecycle", "Predictive lifecycle"], ans: ["Predictive lifecycle"] },
+            { id: 'W9_12', type: 'single', q: "A product development team collects feedback after each cycle, refines the design, and repeats the process in spiral steps until the outcome improves. Which lifecycle is being used?", opts: ["Predictive lifecycle", "Iterative lifecycle", "Incremental lifecycle", "Agile lifecycle"], ans: ["Iterative lifecycle"] },
+            { id: 'W9_13', type: 'single', q: "A project delivers usable components to the customer at regular intervals, with each delivery adding new functionality. Which lifecycle BEST describes this approach?", opts: ["Predictive", "Iterative", "Incremental", "Agile"], ans: ["Incremental"] },
+            { id: 'W9_14', type: 'single', q: "According to PMBOK, which lifecycle is described as a hybrid approach, combining iterative feedback with incremental delivery?", opts: ["Predictive lifecycle", "Iterative lifecycle", "Incremental lifecycle", "Agile lifecycle"], ans: ["Agile lifecycle"] },
+            { id: 'W9_15', type: 'single', q: "Which project lifecycle is MOST suitable when customer requirements are expected to change frequently, and rapid adaptation is required?", opts: ["Predictive lifecycle", "Incremental lifecycle", "Agile lifecycle", "Linear lifecycle"], ans: ["Agile lifecycle"] },
+            { id: 'W9_16', type: 'single', q: "According to the Agile Suitability Filter, which condition under Culture / Organization BEST supports the successful adoption of Agile?", opts: ["Strong hierarchical control and fixed decision rights", "High documentation and formal governance", "A supportive environment with leadership buy-in and trust in the team", "Centralized decision-making by senior management"], ans: ["A supportive environment with leadership buy-in and trust in the team"] },
+            { id: 'W9_17', type: 'single', q: "A project team is small, cross-functional, and experienced, but management resists Agile practices and doubts their value. Based on the Agile Suitability Filter, which dimension MOST negatively affects Agile suitability?", opts: ["Project", "Team", "Culture / Organization", "Delivery model"], ans: ["Culture / Organization"] },
+            { id: 'W9_18', type: 'single', q: "Which combination of attributes MOST strongly indicates high Agile suitability?", opts: ["High criticality, large distributed team, low change rate", "Stable requirements, extensive documentation, fixed delivery dates", "High rate of change, incremental delivery possible, low resistance to Agile", "Predictive planning, sequential work, centralized authority"], ans: ["High rate of change, incremental delivery possible, low resistance to Agile"] },
+            { id: 'W9_19', type: 'single', q: "The Agile Suitability Filter suggests Agile is MOST appropriate when:", opts: ["Verification and regulatory compliance dominate project priorities", "Local decision-making is high and sequential working is reduced", "Detailed upfront documentation is mandatory", "Team members lack direct access to business representatives"], ans: ["Local decision-making is high and sequential working is reduced"] },
+            { id: 'W9_20', type: 'single', q: "A company facing a brand‑new market with unpredictable customer reactions should primarily use which approach?", opts: ["Apply standard operating procedures", "Rely only on expert analysis", "Delay decisions until complete information is available", "Conduct experiments and learn from outcomes"], ans: ["Conduct experiments and learn from outcomes"] },
+            { id: 'W9_21', type: 'single', q: "Applying rigid best practices to a highly uncertain and innovative problem is most likely to result in:", opts: ["Increased effciency", "Improved employee morale", "Poor outcomes due to misdiagnosis of the context", "Faster decision-making"], ans: ["Poor outcomes due to misdiagnosis of the context"] },
+            { id: 'W9_22', type: 'single', q: "A radar chart score shows: Culture support: high Team size & experience: high Project criticality: very high Change rate: low. Based on the Agile Suitability Filter, what is the MOST reasonable interpretation?", opts: ["Agile is fully suitable without constraints", "Predictive lifecycle is clearly the best option", "A hybrid or limited Agile approach may be more appropriate", "Agile suitability depends only on team capability"], ans: ["A hybrid or limited Agile approach may be more appropriate"] },
+            // -- Agile Frameworks (From Week 11-14) --
+            { id: 'W11_1', type: 'single', q: "Which of the following is NOT agile mindset?", opts: ["Responsive to change over following a plan", "Customer collaboration over contract negotiation", "Individual and business benefit over processes and tools", "Working software over comprehensive documentation"], ans: ["Individual and business benefit over processes and tools"] },
+            { id: 'W11_2', type: 'multiple', q: "What are the key considerations involved in 'agile sustainable development'? (multiple answers are allowed)", opts: ["healthy balance between work and life for the team members", "adaptation to the changing enviroment", "team member burnout and stress is allowed as long as the they can produce outcomes", "right balance between delivering software at speed and ensuring high quality", "keep up with a consistent and manageable pace of product development over the long term", "continuously improving agile project management processes"], ans: ["healthy balance between work and life for the team members", "right balance between delivering software at speed and ensuring high quality", "keep up with a consistent and manageable pace of product development over the long term", "adaptation to the changing enviroment", "continuously improving agile project management processes"] },
+            { id: 'W11_3', type: 'single', q: "The agile principle that mentions about 'no over-engineering, reducing waste, maximizing value' is", opts: ["Customer satisfaction through early and continuous delivery of valuable software.", "Working software is the primary measure of progress.", "Simplicity-the art of maximizing the amount of work not done-is essential.", "Deliver working software frequently, with a preference for the shortest timescale."], ans: ["Simplicity-the art of maximizing the amount of work not done-is essential."] },
+            { id: 'W11_4', type: 'multiple', q: "What does 'self-organizing teams' refer to in agile manifesto? (multiple answers are allowed)", opts: ["autonomy", "collaboration", "ownership", "self-interest", "accountability", "continuous improvement"], ans: ["autonomy", "collaboration", "ownership", "accountability", "continuous improvement"] },
+            { id: 'W11_5', type: 'single', q: "Agile mindset or manifesto emphasizes ______ communication", opts: ["one-to-one", "face-to-face", "one-to-many", "many-to-many"], ans: ["face-to-face"] },
+            { id: 'W11_6', type: 'single', q: "Which of the following is NOT an agile framework?", opts: ["Extreme programming", "Crystal development", "Feature-driven development", "Dynamic system development", "None of the above"], ans: ["None of the above"] },
+            { id: 'W11_7', type: 'multiple', q: "Which of the following is an agile framework? (multiple answers are allowed)", opts: ["scrum", "kanban", "extreme programming", "lean", "scaled agile"], ans: ["scrum", "kanban", "extreme programming", "lean", "scaled agile"] },
+            { id: 'W11_8', type: 'single', q: "What does 'delay in making decision' mean in agile lean software development?", opts: ["postponing the negative impact of a decision", "taking more time to make a better decision", "postponing the use of resources until the last minute", "postponing the waste of resources until the last minute"], ans: ["postponing the negative impact of a decision"] },
+            { id: 'W11_9', type: 'single', q: "Which of the following is a widely used agile framework?", opts: ["scaled agile", "kanban", "extreme programming", "scrum", "lean"], ans: ["scrum"] },
+            { id: 'W11_10', type: 'multiple', q: "Scrum agile framework consists of the following events, such as (multiple answers are allowed)", opts: ["sprint retro", "daily scrum", "sprint review", "sprint planning", "sprint backlog", "increment"], ans: ["sprint retro", "daily scrum", "sprint review", "sprint planning"] },
+            { id: 'W11_11', type: 'single', q: "The following describes the nature of 'timebox' in scrum agile framework, except", opts: ["sprint", "predetermined duration", "long duration", "iteration"], ans: ["long duration"] },
+            { id: 'W11_12', type: 'multiple', q: "Choose any of the following that is related to scrum team roles (multiple answers are allowed)", opts: ["development team", "scrum master", "project owner", "product owner"], ans: ["development team", "scrum master", "product owner"] },
+            { id: 'W11_13', type: 'multiple', q: "Which of the following is NOT the role of a 'product owner' in scrum agile framework? (multiple answers are allowed)", opts: ["An intermediate-person between the market-needs and internal-exe-team", "Create the product backlog", "Can cancel a sprint", "Own the product backlog", "None of the above"], ans: ["None of the above"] },
+            { id: 'W11_14', type: 'single', q: "Which of the following is the role of a scrum master?", opts: ["Change sprint backlog", "A servant leader", "An intermediate-person between the market-needs and internal-exe-team", "Execute project work"], ans: ["A servant leader"] },
+            { id: 'W11_15', type: 'single', q: "______ agile framework is specifically designed for software development projects.", opts: ["Scaled agile framework", "Kanban", "Extreme programming", "Scrum", "Lean"], ans: ["Extreme programming"] }
+        ];
+
+        // 動態吐槽語錄庫
+        const correctMessages = [
+            "算你有唸書，這題過關。",
+            "居然對了？看來你不是完全靠運氣嘛。",
+            "這題這麼簡單，答對是應該的，別太得意。",
+            "完美命中！身為未來的 PM，你總算有點樣子了。",
+            "哦？有點東西喔。繼續保持，別在下一題翻車了。",
+            "正確無誤！看來你已經看破教授的套路了。",
+            "挺厲害的嘛！不過真正的專案可沒有標準答案喔。",
+            "Bingo！你的敏捷精神值得嘉獎。"
+        ];
+
+        const wrongMessages = [
+            "這可是期末考範圍欸，你確定不重看一次講義？",
+            "大錯特錯！你的邏輯是跟體育老師學的嗎？",
+            "答錯了。如果是真實專案，你剛剛已經害公司賠了五十萬。",
+            "哎呀，翻車了。沒關係，重修費準備好就好。",
+            "這答案簡直是災難級的決策，你的敏捷精神去哪了？",
+            "錯！拜託，這題連隔壁班的大一新生都會選對。"
+        ];
+
+        // 取得隨機回饋訊息
+        const getRandomMsg = (isCorrect) => {
+            const msgs = isCorrect ? correctMessages : wrongMessages;
+            return msgs[Math.floor(Math.random() * msgs.length)];
+        };
+
+        // 打亂陣列 (Fisher-Yates)
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+
+        function FinalHellApp() {
+            const [activeQuizData, setActiveQuizData] = useState([]);
+            const [answersState, setAnswersState] = useState({});
+            const [inputValues, setInputValues] = useState({});
+
+            const initializeQuiz = () => {
+                const shuffledQuestions = shuffleArray(quizData).map(q => {
+                    if (q.opts) {
+                        return { ...q, opts: shuffleArray(q.opts) };
+                    }
+                    return q;
+                });
+                setActiveQuizData(shuffledQuestions);
+                setAnswersState({});
+                setInputValues({});
+            };
+
+            useEffect(() => {
+                initializeQuiz();
+            }, []);
+
+            // 選擇題點擊
+            const handleOptionClick = (q, option) => {
+                const currentState = answersState[q.id];
+                if (currentState?.isLocked) return;
+
+                if (q.type === 'single') {
+                    const isCorrect = q.ans.includes(option);
+                    const feedbackMsg = getRandomMsg(isCorrect);
+                    setAnswersState(prev => ({
+                        ...prev,
+                        [q.id]: { selected: [option], isLocked: true, isCorrect, feedbackMsg }
+                    }));
+                } else if (q.type === 'multiple') {
+                    setAnswersState(prev => {
+                        const currentSelected = prev[q.id]?.selected || [];
+                        const isCurrentlySelected = currentSelected.includes(option);
+                        let newSelected = isCurrentlySelected
+                            ? currentSelected.filter(item => item !== option)
+                            : [...currentSelected, option];
+
+                        return {
+                            ...prev,
+                            [q.id]: { selected: newSelected, isLocked: false, isCorrect: false, feedbackMsg: '' }
+                        };
+                    });
+                }
+            };
+
+            // 多選題送出
+            const handleMultiSubmit = (q) => {
+                const currentState = answersState[q.id];
+                if (!currentState || currentState.selected.length === 0) {
+                    alert("你覺得期末考可以交白卷嗎？給我勾一個！");
+                    return;
+                }
+                const selected = currentState.selected;
+                const isCorrect = selected.length === q.ans.length && selected.every(val => q.ans.includes(val));
+                const feedbackMsg = getRandomMsg(isCorrect);
+
+                setAnswersState(prev => ({
+                    ...prev,
+                    [q.id]: { ...currentState, isLocked: true, isCorrect, feedbackMsg }
+                }));
+            };
+
+            // 處理輸入框變更 (填充與計算)
+            const handleInputChange = (qId, fieldId, value) => {
+                setInputValues(prev => ({
+                    ...prev,
+                    [`${qId}_${fieldId}`]: value
+                }));
+            };
+
+            // 填充題送出驗證
+            const handleFillSubmit = (q) => {
+                let allCorrect = true;
+                q.blanks.forEach(b => {
+                    const userVal = (inputValues[`${q.id}_${b.id}`] || "").trim().toLowerCase();
+                    const isMatch = b.valid.some(ans => userVal === ans.toLowerCase() || userVal.includes(ans.toLowerCase()));
+                    if (!isMatch) allCorrect = false;
+                });
+                const feedbackMsg = getRandomMsg(allCorrect);
+
+                setAnswersState(prev => ({
+                    ...prev,
+                    [q.id]: { isLocked: true, isCorrect: allCorrect, feedbackMsg }
+                }));
+            };
+
+            // 計算題送出驗證
+            const handleCalcSubmit = (q) => {
+                let allCorrect = true;
+                q.fields.forEach(f => {
+                    const userVal = parseFloat(inputValues[`${q.id}_${f.id}`]);
+                    const correctVal = parseFloat(f.correct);
+                    if (isNaN(userVal) || Math.abs(userVal - correctVal) > 0.01) {
+                        allCorrect = false;
+                    }
+                });
+                const feedbackMsg = getRandomMsg(allCorrect);
+
+                setAnswersState(prev => ({
+                    ...prev,
+                    [q.id]: { isLocked: true, isCorrect: allCorrect, feedbackMsg }
+                }));
+            };
+
+            const handleReset = () => {
+                if (window.confirm('確定重來？')) {
+                    initializeQuiz();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+
+            const lockedAnswers = Object.values(answersState).filter(a => a.isLocked);
+            const score = lockedAnswers.filter(a => a.isCorrect).length;
+            const answeredCount = lockedAnswers.length;
+            const total = activeQuizData.length;
+
+            if (activeQuizData.length === 0) return <div className="p-8 text-center text-slate-500 font-bold">考卷印製中... 等等就讓你哭</div>;
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-8">
+
+                    {/* --- 靜態大標題區塊 (不再跟隨捲動) --- */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 text-center">
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">軟專期末總複習</h1>
+                        <p className="text-slate-500 text-sm md:text-base">
+                            準備接受我期末考的洗禮吧！勇敢的挑戰者！
+                        </p>
+                    </div>
+
+                    {/* --- 輕量級的膠囊進度條 (Sticky 跟隨捲動) --- */}
+                    <div className="sticky top-4 z-50 flex justify-center">
+                        <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md text-indigo-700 px-6 py-3 rounded-full font-bold shadow-md border border-indigo-100">
+                            <span>🏆 進度：{answeredCount} / {total}</span>
+                            <span className="w-px h-4 bg-indigo-200"></span>
+                            <span>得分：{score}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        {activeQuizData.map((q, index) => {
+                            const state = answersState[q.id] || { selected: [], isLocked: false, feedbackMsg: '' };
+                            const isAnswered = state.isLocked;
+
+                            return (
+                                <div key={q.id} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+
+                                    <div className="flex items-start justify-between mb-4">
+                                        <h3 className="text-lg font-bold text-slate-800 leading-relaxed pr-4 whitespace-pre-line">
+                                            <span className="text-indigo-500 mr-2 text-xl">Q{index + 1}.</span>
+                                            {q.q}
+                                        </h3>
+                                        <span className={`flex-shrink-0 text-xs font-bold px-2 py-1 rounded flex items-center gap-1 ${q.type === 'multiple' ? 'bg-amber-100 text-amber-800' :
+                                            q.type === 'fill' ? 'bg-blue-100 text-blue-800' :
+                                                q.type === 'calc' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-500'
+                                            }`}>
+                                            {q.type === 'multiple' ? '⚠️ 多選' : q.type === 'fill' ? '✍️ 填充' : q.type === 'calc' ? '🧮 計算' : '單選'}
+                                        </span>
+                                    </div>
+
+                                    {/* 如果題目有圖片，就顯示圖片 */}
+                                    {q.image && (
+                                        <div className="mb-6">
+                                            <img src={q.image} alt="Question Illustration" className="max-w-full h-auto rounded-lg border border-slate-200 shadow-sm" />
+                                        </div>
+                                    )}
+
+                                    {/* 單選/多選 UI */}
+                                    {(q.type === 'single' || q.type === 'multiple') && (
+                                        <div className="space-y-3">
+                                            {q.opts.map((opt, i) => {
+                                                const isSelected = state.selected.includes(opt);
+                                                const isCorrectOption = q.ans.includes(opt);
+                                                let btnClass = "w-full flex items-center gap-3 text-left p-4 rounded-xl border-2 transition-all duration-200 font-medium ";
+
+                                                if (!isAnswered) {
+                                                    btnClass += isSelected ? "border-indigo-500 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white hover:border-indigo-400 hover:bg-slate-50 cursor-pointer text-slate-700";
+                                                } else {
+                                                    if (q.type === 'single') {
+                                                        if (isCorrectOption) btnClass += "border-emerald-500 bg-emerald-50 text-emerald-800";
+                                                        else if (isSelected) btnClass += "border-rose-500 bg-rose-50 text-rose-800 line-through opacity-80";
+                                                        else btnClass += "border-slate-100 bg-slate-50 text-slate-400 opacity-50";
+                                                    } else {
+                                                        if (isSelected && isCorrectOption) btnClass += "border-emerald-500 bg-emerald-50 text-emerald-800";
+                                                        else if (isSelected && !isCorrectOption) btnClass += "border-rose-500 bg-rose-50 text-rose-800 line-through opacity-80";
+                                                        else if (!isSelected && isCorrectOption) btnClass += "border-amber-400 bg-amber-50 text-amber-800 border-dashed";
+                                                        else btnClass += "border-slate-100 bg-slate-50 text-slate-400 opacity-50";
+                                                    }
+                                                }
+
+                                                return (
+                                                    <button key={i} disabled={isAnswered} onClick={() => handleOptionClick(q, opt)} className={btnClass}>
+                                                        {q.type === 'multiple' && <div className="flex-shrink-0 text-xl">{isSelected ? "☑️" : "⬜"}</div>}
+                                                        <span>{opt}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                            {q.type === 'multiple' && !isAnswered && (
+                                                <div className="mt-4 text-right">
+                                                    <button onClick={() => handleMultiSubmit(q)} className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-bold">送出多選答案</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 填充題 UI */}
+                                    {q.type === 'fill' && (
+                                        <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
+                                            {q.blanks.map(b => (
+                                                <div key={b.id} className="flex flex-col md:flex-row md:items-center gap-3">
+                                                    <label className="font-semibold text-slate-700 w-32 shrink-0">{b.label}</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled={isAnswered}
+                                                        value={inputValues[`${q.id}_${b.id}`] || ''}
+                                                        onChange={(e) => handleInputChange(q.id, b.id, e.target.value)}
+                                                        placeholder="Type here..."
+                                                        className="flex-1 p-3 border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 font-mono text-sm"
+                                                    />
+                                                </div>
+                                            ))}
+                                            {!isAnswered && (
+                                                <div className="text-right mt-2">
+                                                    <button onClick={() => handleFillSubmit(q)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold">送出填充答案</button>
+                                                </div>
+                                            )}
+                                            {isAnswered && (
+                                                <div className="mt-3 text-sm text-slate-600 bg-white p-3 rounded border border-dashed border-slate-300">
+                                                    <span className="font-bold text-slate-800">參考解答 (輸入部分吻合即給過)：</span>
+                                                    <ul className="list-disc pl-5 mt-1">
+                                                        {q.blanks.map(b => (
+                                                            <li key={b.id}>{b.label}: <span className="text-emerald-600 font-bold">{b.valid.join(' / ')}</span></li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 計算題 UI */}
+                                    {q.type === 'calc' && (
+                                        <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
+                                            {q.fields.map(f => (
+                                                <div key={f.id} className="flex flex-col md:flex-row md:items-center gap-3">
+                                                    <label className="font-semibold text-slate-700 md:w-1/2">{f.label}</label>
+                                                    <input
+                                                        type="number" step="0.01"
+                                                        disabled={isAnswered}
+                                                        value={inputValues[`${q.id}_${f.id}`] || ''}
+                                                        onChange={(e) => handleInputChange(q.id, f.id, e.target.value)}
+                                                        placeholder="0.00"
+                                                        className="flex-1 p-3 border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 font-mono text-lg"
+                                                    />
+                                                </div>
+                                            ))}
+                                            {!isAnswered && (
+                                                <div className="text-right mt-2">
+                                                    <button onClick={() => handleCalcSubmit(q)} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-bold">確認計算結果</button>
+                                                </div>
+                                            )}
+                                            {isAnswered && (
+                                                <div className="mt-3 text-sm text-slate-600 bg-white p-3 rounded border border-dashed border-slate-300">
+                                                    <span className="font-bold text-slate-800">正確數值 (誤差需在 0.01 內)：</span>
+                                                    <ul className="list-disc pl-5 mt-1">
+                                                        {q.fields.map(f => (
+                                                            <li key={f.id}>{f.label}: <span className="text-emerald-600 font-bold">{f.correct}</span></li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 結果回饋 */}
+                                    {isAnswered && (
+                                        <div className={`mt-5 p-4 rounded-xl flex items-start gap-3 transition-opacity ${state.isCorrect ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'
+                                            }`}>
+                                            <div className="text-2xl mt-0.5">{state.isCorrect ? '🟢' : '🔴'}</div>
+                                            <div>
+                                                <p className="font-bold mb-1 text-lg">{state.isCorrect ? '漂亮！' : '錯誤！'}</p>
+                                                <p className="leading-relaxed opacity-90">{state.feedbackMsg}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {answeredCount > 0 && (
+                        <div className="text-center pt-8">
+                            <button onClick={handleReset} className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-full font-bold shadow-sm">
+                                🔄 全部清空
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<FinalHellApp />);
+    </script>
+</body>
+
+</html>
