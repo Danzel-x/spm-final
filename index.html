@@ -38,15 +38,15 @@
         fields: [
           { id: "cpi", label: "CPI", correct: 0.80 }, 
           { id: "spi", label: "SPI", correct: 1.33 },
-          { id: "budget", label: "Budget (over/under)", correct: "over budget", isText: true, valid: ["over", "over budget", "overbudget"] },
-          { id: "schedule", label: "Schedule (ahead/behind)", correct: "ahead of schedule", isText: true, valid: ["ahead", "ahead of schedule", "ahead of"] }
+          { id: "budget", label: "Budget", correct: "over budget", isText: true, valid: ["over", "over budget", "overbudget"] },
+          { id: "schedule", label: "Schedule", correct: "ahead of schedule", isText: true, valid: ["ahead", "ahead of schedule", "ahead of"] }
         ] 
       },
       { 
         id: 'C2', 
         type: 'calc', 
         q: "Based on the Value Stream Mapping analysis in the image below, please calculate the following four metrics:", 
-        image: "https://placehold.co/800x300/4f46e5/ffffff?text=請將此網址替換為你的圖片路徑+(例如:vsm.jpg)", 
+        image: "time.jpg)", 
         fields: [
           { id: "vat", label: "Total Value-adding Time", correct: 1596.5 }, 
           { id: "wt", label: "Total Wait Time", correct: 1280 }, 
@@ -238,16 +238,25 @@
                 }));
             };
 
-            // 計算題送出驗證
-            const handleCalcSubmit = (q) => {
-                let allCorrect = true;
-                q.fields.forEach(f => {
-                    const userVal = parseFloat(inputValues[`${q.id}_${f.id}`]);
-                    const correctVal = parseFloat(f.correct);
-                    if (isNaN(userVal) || Math.abs(userVal - correctVal) > 0.01) {
-                        allCorrect = false;
-                    }
-                });
+// 修正後的混合型計算驗證
+      const handleCalcSubmit = (q) => {
+        let allCorrect = true;
+        q.fields.forEach(f => {
+          const rawUserVal = (inputValues[`${q.id}_${f.id}`] || "").trim().toLowerCase();
+          
+          if (f.isText) {
+             // 文字比對模式 (允許輸入包含關鍵字)
+             const isMatch = f.valid.some(ans => rawUserVal === ans.toLowerCase() || rawUserVal.includes(ans.toLowerCase()));
+             if (!isMatch) allCorrect = false;
+          } else {
+             // 數字比對模式 (允許 0.01 誤差)
+             const userVal = parseFloat(rawUserVal);
+             const correctVal = parseFloat(f.correct);
+             if (isNaN(userVal) || Math.abs(userVal - correctVal) > 0.01) {
+               allCorrect = false;
+             }
+          }
+        });
                 const feedbackMsg = getRandomMsg(allCorrect);
 
                 setAnswersState(prev => ({
