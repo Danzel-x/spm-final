@@ -32,7 +32,7 @@
 
             // ========== 計算題 (Calculation) from Docx ==========
             { id: 'C1', type: 'calc', q: "Scenario: A retail company is building a custom mobile shopping application.\n- Total Budget (BAC): $120,000\n- Planned Timeline: 12 weeks\nAt the end of Week 3, the team checks their EVM metrics:\n- Planned Value (PV): Planned to complete 25% of features. PV = $30,000.\n- Earned Value (EV): Completed 33% of features ahead of time. EV = $40,000.\n- Actual Cost (AC): Senior devs brought in unexpectedly. AC = $50,000.\n\nCalculate CPI and SPI. (小數點後兩位)", fields: [{ id: "cpi", label: "CPI", correct: 0.80 }, { id: "spi", label: "SPI", correct: 1.33 }] },
-            { id: 'C2', type: 'calc', q: "Based on the Value Stream Mapping analysis in the image below, please calculate the following four metrics:", image: "time.jpg", fields: [{ id: "vat", label: "Total Value-adding Time", correct: 1596.5 }, { id: "wt", label: "Total Wait Time", correct: 1280 }, { id: "lead", label: "Total Lead Time", correct: 2876.5 }, { id: "eff", label: "Process Efficiency (%)", correct: 55.5 }] },
+            { id: 'C2', type: 'calc', q: "Based on the Value Stream Mapping analysis in the image below, please calculate the following four metrics:", image: "time.jpg", fields: [{ id: "vat", label: "Total Value-adding Time", correct: 1596.5 }, { id: "wt", label: "Total Wait Time", correct: 1280 }, { id: "lead", label: "Total Lead Time", correct: 2876.5 }, { id: "eff", label: "Process Efficiency (%)", correct: 55.5 },{ id: "budget", label: "Budget Status (over/under)", correct: "over budget" },{ id: "schedule", label: "Schedule Status", correct: "ahead of schedule" }] },
 
             // ========== 單/多選題 (Docx + Week 9 + Week 11-14) ==========
 
